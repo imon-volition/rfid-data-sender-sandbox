@@ -1,9 +1,7 @@
 const http = require('http');
 const express = require('express');
-
 const jsonData = require('./rfid_stream_data.json');
-
-const webhookUrl = 'http://localhost:5000/webhook';
+const webhookUrl = 'http://localhost:3001/webhook';
 
 let currentIndex = 0;
 
@@ -11,6 +9,8 @@ function sendData() {
   if (currentIndex >= jsonData.length) {
     currentIndex = 0;
   }
+
+  const dataToSend = [jsonData[currentIndex]]; // Wrap the current data object in an array
 
   const options = {
     method: 'POST',
@@ -27,7 +27,7 @@ function sendData() {
     });
 
     res.on('end', () => {
-      console.log('Data sent:', jsonData[currentIndex]);
+      console.log('Data sent:', dataToSend);
       currentIndex++;
       setTimeout(sendData, 1000); // Delay execution by 1 second before sending the next item
     });
@@ -35,17 +35,16 @@ function sendData() {
 
   req.on('error', (error) => {
     console.log('Failed to send data:', error.message);
-
   });
 
-  req.write(JSON.stringify(jsonData[currentIndex]));
+  req.write(JSON.stringify(dataToSend));
   req.end();
 }
 
 sendData();
 
 const app = express();
-const port = 3000; // Change the port number if needed
+const port = 4000; // Change the port number if needed
 
 app.get('/', (req, res) => {
   res.send('Server is running');
